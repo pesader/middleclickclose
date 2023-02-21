@@ -54,6 +54,7 @@ var Init = class Init {
 
 	enable() {
 		this._oldActivate = WindowPreview.prototype._activate;
+		this._oldVfuncKeyPressEvent = WindowPreview.prototype.vfunc_key_press_event;
 		this._oldDoRemoveWindow = Workspace.Workspace.prototype._doRemoveWindow;
 		this._oldAddWindowClone = Workspace.Workspace.prototype._addWindowClone;
 		this._settings = ExtensionUtils.getSettings();
@@ -78,6 +79,16 @@ var Init = class Init {
 			let clone = init._oldAddWindowClone.apply(this, [metaWindow]);
 			clone.get_actions()[0].connect('clicked', onClicked.bind(clone));
 			return clone;
+		}
+
+		WindowPreview.prototype.vfunc_key_press_event = function(keyEvent) {
+		    let symbol = keyEvent.keyval;
+		    let isEnter = symbol == Clutter.KEY_Return || symbol == Clutter.KEY_KP_Enter;
+		    if (isEnter) {
+			init._oldActivate.apply(this);
+			return true;
+		    }
+		    return this._oldVfuncKeyPressEvent(keyEvent);
 		}
 
 		// override WindowClone's _activate
